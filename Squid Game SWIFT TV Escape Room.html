@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Squid Game X SWIFT TV Escape Room</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Chakra+Petch:wght@700&display=swap" rel="stylesheet">
+    <style>
+        /* Global styles and variables */
+        :root {
+            --primary-red: #E50914; /* Netflix red / Squid Game red */
+            --dark-green: #0A3D0A; /* Dark green for guards */
+            --dark-blue: #001F3F; /* Dark blue for background */
+            --light-grey: #D3D3D3;
+            --white: #FFFFFF;
+            --black: #000000;
+            --text-color: var(--light-grey);
+            --font-family: 'Inter', sans-serif; /* Default font */
+            --puzzle-bg: rgba(0, 0, 0, 0.85); /* Slightly more opaque for content */
+            --sidebar-bg: rgba(0, 0, 0, 0.9); /* Even more opaque for sidebar */
+            --border-radius: 15px;
+            --transition-speed: 0.3s ease-in-out;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: var(--font-family);
+            background: url('https://placehold.co/1920x1080/000000/E50914?text=Squid+Game+Background') no-repeat center center fixed; /* Placeholder for Squid Game background */
+            background-size: cover;
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            overflow-x: hidden; /* Prevent horizontal scroll */
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 12px;
+            background-color: var(--black);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background-color: var(--primary-red);
+            border-radius: 6px;
+            border: 2px solid var(--black);
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background-color: #FF2D3B;
+        }
+
+        /* Main game container */
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            width: 100%;
+            max-width: 1400px; /* Increased max-width for more space */
+            margin: 0 auto;
+            padding: 20px;
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        /* Header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 2px solid var(--primary-red);
+            margin-bottom: 20px;
+            flex-wrap: wrap; /* Allow wrapping on smaller screens */
+        }
+
+        .game-title {
+            font-family: 'Chakra Petch', sans-serif; /* Squid Game-like font */
+            font-size: clamp(1.5rem, 5vw, 3rem); /* Responsive font size */
+            color: var(--primary-red);
+            text-shadow: 0 0 10px rgba(229, 9, 20, 0.5);
+            font-weight: 700;
+            text-align: center;
+            flex-grow: 1;
+            margin-bottom: 10px; /* Space for wrap */
+        }
+
+        .logo-container {
+            flex-shrink: 0;
+            margin-left: 20px; /* Space from title */
+            margin-bottom: 10px; /* Space for wrap */
+        }
+
+        .logo-container img {
+            max-height: 60px;
+            width: auto;
+            border-radius: var(--border-radius);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+        }
+
+        /* Timer and Coins */
+        .header-info {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .timer, .coins-display {
+            font-size: clamp(1.2rem, 4vw, 1.8rem);
+            color: var(--white);
+            background-color: var(--dark-green);
+            padding: 10px 20px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 0 15px rgba(10, 61, 10, 0.5);
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        /* Mute Button */
+        .mute-button {
+            background-color: #555;
+            color: var(--white);
+            border: none;
+            padding: 10px 15px;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color var(--transition-speed);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+            margin-left: 15px;
+        }
+
+        .mute-button:hover {
+            background-color: #777;
+        }
+
+        /* Game content area - New layout for main game screen */
+        .game-content {
+            display: flex;
+            flex-grow: 1;
+            gap: 20px;
+            flex-direction: column; /* Default to column for mobile */
+            align-items: center; /* Center content horizontally */
+            justify-content: center; /* Center content vertically */
+        }
+
+        @media (min-width: 768px) {
+            .game-content {
+                flex-direction: row; /* Row for larger screens */
+                align-items: flex-start; /* Align items to top in row layout */
+                justify-content: center; /* Keep main content centered */
+            }
+            .header-info {
+                width: auto; /* Allow items to shrink */
+            }
+        }
+
+        /* Puzzle area - Main central content */
+        .puzzle-area {
+            flex: 2; /* Takes more space */
+            background-color: var(--puzzle-bg);
+            border-radius: var(--border-radius);
+            padding: 30px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            min-height: 500px; /* Ensure sufficient height */
+            max-width: 800px; /* Max width for puzzle content */
+            user-select: none; /* Prevent text selection for cheating */
+            -webkit-user-select: none; /* Safari */
+            -moz-user-select: none; /* Firefox */
+            -ms-user-select: none; /* IE/Edge */
+        }
+
+        .puzzle-area h2 {
+            font-size: clamp(1.8rem, 5vw, 2.5rem);
+            color: var(--primary-red);
+            margin-bottom: 20px;
+            text-shadow: 0 0 8px rgba(229, 9, 20, 0.3);
+        }
+
+        .puzzle-area p {
+            font-size: clamp(1rem, 3vw, 1.2rem);
+            line-height: 1.6;
+            margin-bottom: 25px;
+            color: var(--light-grey);
+        }
+
+        .puzzle-image {
+            max-width: 90%;
+            height: auto;
+            border-radius: var(--border-radius);
+            margin-bottom: 25px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
+            border: 3px solid var(--dark-green);
+            transition: transform 0.3s ease;
+        }
+
+        .puzzle-image:hover {
+            transform: scale(1.02);
+        }
+
+        /* Answer submission sidebar - Distinct panel on the right */
+        .answer-sidebar {
+            flex: 1; /* Takes less space */
+            background-color: var(--sidebar-bg); /* Darker background for distinction */
+            border-radius: var(--border-radius);
+            padding: 20px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            overflow-y: auto; /* Scrollbar for answers */
+            max-height: 500px; /* Limit height for scroll */
+            min-width: 280px; /* Ensure minimum width for sidebar */
+        }
+
+        .answer-sidebar h3 {
+            font-size: clamp(1.4rem, 4vw, 1.8rem);
+            color: var(--white);
+            margin-bottom: 15px;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.2);
+        }
+
+        .answer-input-group {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .answer-input {
+            width: calc(100% - 20px); /* Adjust for padding */
+            padding: 12px;
+            border: 2px solid var(--dark-green);
+            border-radius: 8px;
+            background-color: var(--black);
+            color: var(--white);
+            font-size: 1rem;
+            outline: none;
+            transition: border-color var(--transition-speed), box-shadow var(--transition-speed);
+        }
+
+        .answer-input:focus {
+            border-color: var(--primary-red);
+            box-shadow: 0 0 8px rgba(229, 9, 20, 0.5);
+        }
+
+        .submit-button, .hint-button {
+            background-color: var(--primary-red);
+            color: var(--white);
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color var(--transition-speed), transform 0.2s ease, box-shadow var(--transition-speed);
+            box-shadow: 0 5px 15px rgba(229, 9, 20, 0.4);
+            width: 100%;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 10px; /* Space between submit and hint */
+        }
+
+        .submit-button:hover, .hint-button:hover {
+            background-color: #FF2D3B;
+            transform: translateY(-2px);
+            box-shadow: 0 7px 20px rgba(229, 9, 20, 0.6);
+        }
+
+        .submit-button:active, .hint-button:active {
+            transform: translateY(0);
+            box-shadow: 0 3px 10px rgba(229, 9, 20, 0.3);
+        }
+
+        .hint-button {
+            background-color: #4CAF50; /* A different color for hint */
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+        }
+
+        .hint-button:hover {
+            background-color: #66BB6A;
+            box-shadow: 0 7px 20px rgba(76, 175, 80, 0.6);
+        }
+
+        /* Message box for feedback */
+        .message-box {
+            background-color: var(--dark-green);
+            color: var(--white);
+            padding: 15px;
+            border-radius: var(--border-radius);
+            margin-top: 20px;
+            text-align: center;
+            font-size: 1.1rem;
+            box-shadow: 0 0 15px rgba(10, 61, 10, 0.5);
+            display: none; /* Hidden by default */
+            animation: fadeIn 0.5s forwards;
+        }
+
+        .message-box.error {
+            background-color: var(--primary-red);
+            box-shadow: 0 0 15px rgba(229, 9, 20, 0.5);
+        }
+
+        .hint-box {
+            background-color: #333;
+            color: var(--white);
+            padding: 15px;
+            border-radius: var(--border-radius);
+            margin-top: 15px;
+            text-align: center;
+            font-size: 1rem;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            display: none; /* Hidden by default */
+            animation: fadeIn 0.5s forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Congratulations Modal */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1000; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.8); /* Black w/ opacity */
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.5s forwards;
+        }
+
+        .modal-content {
+            background-color: var(--puzzle-bg);
+            margin: auto;
+            padding: 40px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 0 30px rgba(229, 9, 20, 0.7);
+            text-align: center;
+            position: relative;
+            animation: zoomIn 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards; /* Bounce effect */
+            max-width: 90%;
+            box-sizing: border-box;
+        }
+
+        .modal-content h2 {
+            color: var(--primary-red);
+            font-family: 'Chakra Petch', sans-serif;
+            font-size: clamp(2rem, 6vw, 3.5rem);
+            margin-bottom: 20px;
+            text-shadow: 0 0 15px rgba(229, 9, 20, 0.7);
+        }
+
+        .modal-content p {
+            color: var(--white);
+            font-size: clamp(1.1rem, 3.5vw, 1.5rem);
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+
+        .close-button {
+            background-color: var(--dark-green);
+            color: var(--white);
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color var(--transition-speed), transform 0.2s ease;
+            box-shadow: 0 5px 15px rgba(10, 61, 10, 0.4);
+        }
+
+        .close-button:hover {
+            background-color: #1A5C1A;
+            transform: translateY(-2px);
+            box-shadow: 0 7px 20px rgba(10, 61, 10, 0.6);
+        }
+
+        @keyframes zoomIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            70% { transform: scale(1.05); opacity: 1; }
+            100% { transform: scale(1); }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 767px) {
+            header {
+                flex-direction: column;
+                align-items: center;
+            }
+            .logo-container {
+                margin-left: 0;
+                margin-top: 15px;
+            }
+            .timer, .coins-display {
+                margin-top: 10px;
+                width: 100%;
+            }
+            .header-info {
+                flex-direction: column;
+                align-items: center;
+            }
+            .puzzle-area, .answer-sidebar {
+                padding: 20px;
+            }
+            .answer-input, .submit-button, .hint-button {
+                font-size: 0.95rem;
+                padding: 10px;
+            }
+        }
+
+        /* Specific styles for home and instructions screens */
+        .screen {
+            display: none; /* Hidden by default */
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            flex-grow: 1;
+            padding: 20px;
+            box-sizing: border-box;
+            background-color: rgba(0, 0, 0, 0.7); /* Opaque background for screens */
+            border-radius: var(--border-radius);
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.7);
+            max-width: 900px; /* Limit width for screens */
+            margin: 0 auto; /* Center screens */
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        .screen h2 {
+            font-family: 'Chakra Petch', sans-serif;
+            font-size: clamp(2rem, 6vw, 4rem);
+            color: var(--primary-red);
+            text-shadow: 0 0 15px rgba(229, 9, 20, 0.7);
+            margin-bottom: 20px;
+        }
+
+        .screen p {
+            font-size: clamp(1rem, 3vw, 1.3rem);
+            line-height: 1.6;
+            max-width: 800px;
+            margin-bottom: 30px;
+            color: var(--light-grey);
+        }
+
+        .screen input[type="text"] {
+            width: clamp(250px, 70%, 400px);
+            padding: 15px;
+            border: 2px solid var(--dark-green);
+            border-radius: 10px;
+            background-color: var(--black);
+            color: var(--white);
+            font-size: 1.2rem;
+            text-align: center;
+            margin-bottom: 20px;
+            transition: border-color var(--transition-speed), box-shadow var(--transition-speed);
+        }
+
+        .screen input[type="text"]:focus {
+            border-color: var(--primary-red);
+            box-shadow: 0 0 10px rgba(229, 9, 20, 0.5);
+            outline: none;
+        }
+
+        .screen button {
+            background-color: var(--primary-red);
+            color: var(--white);
+            border: none;
+            padding: 15px 40px;
+            border-radius: 10px;
+            font-size: 1.3rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color var(--transition-speed), transform 0.2s ease, box-shadow var(--transition-speed);
+            box-shadow: 0 5px 15px rgba(229, 9, 20, 0.4);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .screen button:hover {
+            background-color: #FF2D3B;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(229, 9, 20, 0.6);
+        }
+
+        .screen button:active {
+            transform: translateY(0);
+            box-shadow: 0 3px 10px rgba(229, 9, 20, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <header>
+            <h1 class="game-title">Squid Game X SWIFT TV</h1>
+            <div class="logo-container">
+                <!-- Placeholder for TGM logo - Replace with your actual TGM logo image -->
+                <img src="https://placehold.co/150x60/3498db/ffffff?text=TGM+Logo" alt="TGM Logo">
+            </div>
+            <div class="header-info">
+                <div class="timer" id="timer">Time Remaining: 40:00</div>
+                <div class="coins-display" id="coins-display">Coins: 0</div>
+                <button id="mute-button" class="mute-button">Mute Music</button>
+            </div>
+        </header>
+
+        <!-- Home Screen -->
+        <div id="home-screen" class="screen active">
+            <h2>Welcome, Players!</h2>
+            <p>Prepare to enter the thrilling world of Squid Game X SWIFT TV. To begin your challenge, please enter your team name below.</p>
+            <input type="text" id="team-name-input" placeholder="Enter Team Name">
+            <button id="start-intro-button">Enter The Game</button>
+        </div>
+
+        <!-- Instructions Screen -->
+        <div id="instructions-screen" class="screen">
+            <h2>Game Rules & Instructions</h2>
+            <p>Welcome to the ultimate test of wits and teamwork! Your team has <strong>40 minutes</strong> to solve a series of challenging puzzles inspired by the Squid Game universe. Each correct answer will unlock the next puzzle and reveal a digit for the final Master Code. Collaborate, think creatively, and manage your time wisely. Earn coins for each puzzle solved. You can spend 5 coins for a hint if you get stuck!</p>
+            <button id="start-game-button">Start Challenge</button>
+        </div>
+
+        <!-- Main Game Content (initially hidden) -->
+        <main class="game-content" style="display: none;">
+            <section class="puzzle-area">
+                <h2 id="puzzle-title"></h2>
+                <!-- IMPORTANT: Replace these placeholder images with actual Squid Game graphics that are integral to the puzzle.
+                     For example, an image of a scene from Squid Game with a hidden number, a coded message on a wall,
+                     or a visual representation of the game's challenge. This makes the puzzles more engaging and "AI-proof". -->
+                <img id="puzzle-image" class="puzzle-image" src="" alt="Puzzle Image" onerror="this.style.display='none'">
+                <p id="puzzle-description"></p>
+                <p id="master-code-progress" style="font-size: 1.1rem; color: #FFD700; margin-top: 15px; font-family: 'Chakra Petch', sans-serif; display: none;">Master Code Progress: <span id="master-code-display"></span></p>
+            </section>
+
+            <aside class="answer-sidebar">
+                <h3>Submit Your Answer</h3>
+                <div class="answer-input-group">
+                    <input type="text" id="answer-input" class="answer-input" placeholder="Enter your answer here...">
+                    <button id="submit-answer-button" class="submit-button">Submit</button>
+                    <button id="hint-button" class="hint-button">Get Hint (5 Coins)</button>
+                </div>
+                <div id="message-box" class="message-box"></div>
+                <div id="hint-box" class="hint-box"></div>
+            </aside>
+        </main>
+    </div>
+
+    <!-- Congratulations Modal -->
+    <div id="congratulations-modal" class="modal">
+        <div class="modal-content">
+            <h2>Congratulations!</h2>
+            <p>You have successfully escaped the Squid Game X SWIFT TV challenge! Your team's ingenuity and teamwork have paid off. Well done!</p>
+            <button id="close-modal-button" class="close-button">Play Again</button>
+        </div>
+    </div>
+
+    <!-- Audio Elements -->
+    <!-- Sound sources are placeholders. Replace with actual Squid Game sounds if available and licensed. -->
+    <audio id="bg-music" loop>
+        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+    <audio id="correct-sound">
+        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+    <audio id="incorrect-sound">
+        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+    <audio id="win-sound">
+        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+
+    <script>
+        // JavaScript for Game Logic
+        document.addEventListener('DOMContentLoaded', () => {
+            const homeScreen = document.getElementById('home-screen');
+            const instructionsScreen = document.getElementById('instructions-screen');
+            const gameContent = document.querySelector('.game-content');
+            const teamNameInput = document.getElementById('team-name-input');
+            const startIntroButton = document.getElementById('start-intro-button');
+            const startGameButton = document.getElementById('start-game-button');
+
+            const puzzleTitle = document.getElementById('puzzle-title');
+            const puzzleImage = document.getElementById('puzzle-image');
+            const puzzleDescription = document.getElementById('puzzle-description');
+            const answerInput = document.getElementById('answer-input');
+            const submitButton = document.getElementById('submit-answer-button');
+            const hintButton = document.getElementById('hint-button');
+            const messageBox = document.getElementById('message-box');
+            const hintBox = document.getElementById('hint-box');
+            const timerDisplay = document.getElementById('timer');
+            const coinsDisplay = document.getElementById('coins-display');
+            const congratulationsModal = document.getElementById('congratulations-modal');
+            const closeModalButton = document.getElementById('close-modal-button');
+            const muteButton = document.getElementById('mute-button');
+            const masterCodeProgress = document.getElementById('master-code-progress');
+            const masterCodeDisplay = document.getElementById('master-code-display');
+
+            // Audio elements
+            const bgMusic = document.getElementById('bg-music');
+            const correctSound = document.getElementById('correct-sound');
+            const incorrectSound = document.getElementById('incorrect-sound');
+            const winSound = document.getElementById('win-sound');
+
+            let currentPuzzleIndex = 0;
+            let timeLeft = 40 * 60; // 40 minutes in seconds
+            let timerInterval;
+            let teamName = ''; // Variable to store team name
+            let coins = 0; // Initialize coins
+            let isMuted = false; // Track mute state for background music
+
+            // Array to store digits of the master code. Initialized with 10 empty strings for 10 digits.
+            let masterCode = Array(10).fill(''); 
+
+            // Define the puzzles
+            const puzzles = [
+                {
+                    title: "The First Symbol's Value",
+                    description: "The game begins with a choice, a simple shape, yet it holds a secret. If the circle represents the beginning (value 1), and the square the end (value 3), what numerical value does the triangle, the path between, truly hold in the Squid Game hierarchy? This is the first digit of your Master Code.",
+                    image: "https://placehold.co/600x350/000000/E50914?text=Invitation+Symbols",
+                    answer: "2",
+                    hint: "Think about the progression of guard ranks or the number of lines needed to draw each shape (Circle=1, Triangle=2, Square=3 for complexity).",
+                    code_digit: "2",
+                    code_index: 0 // Index for masterCode array
+                },
+                {
+                    title: "The Silent Watcher's Count",
+                    description: "In the 'Red Light, Green Light' game, a silent watcher stands guard. It has eyes but cannot see, a voice but cannot speak. How many distinct, primary colors are visible on this watcher's form that dictate the game's rules? This is the second digit of your Master Code.",
+                    image: "https://placehold.co/600x350/8B0000/FFFFFF?text=Red+Light,+Green+Light+Doll",
+                    answer: "2",
+                    hint: "Focus on the core mechanics of the game it oversees: what two colors are key?",
+                    code_digit: "2",
+                    code_index: 1
+                },
+                {
+                    title: "The Sweet Challenge's Edge",
+                    description: "The Dalgona candy, a fragile test of precision. If you were to trace the outline of the *most common* shape found on the guards' masks, how many straight lines would it take to complete that shape? This is the third digit of your Master Code.",
+                    image: "https://placehold.co/600x350/FFD700/000000?text=Dalgona+Shapes",
+                    answer: "4",
+                    hint: "Which geometric shape is most frequently seen on the lower-ranking guards' masks?",
+                    code_digit: "4",
+                    code_index: 2
+                },
+                {
+                    title: "The Force's Missing Link",
+                    description: "In a test of raw power, your team needs to achieve a total pull of 1500 units. If four of your teammates contribute 300, 350, 250, and 400 units respectively, what is the single digit that represents the *tens place* of the remaining force needed from the fifth member? This is the fourth digit of your Master Code.",
+                    image: "https://placehold.co/600x350/4B0082/FFFFFF?text=Tug-of-War+Rope",
+                    answer: "0",
+                    hint: "Calculate the sum of the four known forces, then subtract from the target. The tens digit of that result is your answer.",
+                    code_digit: "0",
+                    code_index: 3
+                },
+                {
+                    title: "The Transparent Path's Deception",
+                    description: "On the perilous glass bridge, there's a pattern of safe and unsafe panels. If 'S' denotes a safe panel and 'U' an unsafe one, and the sequence of safe panels is always followed by exactly one unsafe panel (S, U, S, U...), how many 'U' panels would you encounter if there are 7 safe panels in total? This is the fifth digit of your Master Code.",
+                    image: "https://placehold.co/600x350/A9A9A9/000000?text=Glass+Bridge+Pattern",
+                    answer: "6",
+                    hint: "Draw out the sequence: S, U, S, U... until you have 7 'S' panels. Count the 'U's.",
+                    code_digit: "6",
+                    code_index: 4
+                },
+                {
+                    title: "The Marble's Hidden Sum",
+                    description: "In a game of chance, you are given a set of marbles. You find a note with three numbers: the number of marbles you *started* with (15), the number you *lost* (7), and the number you *won* (12). What is the sum of the *digits* of the total number of marbles you have now? This is the sixth digit of your Master Code.",
+                    image: "https://placehold.co/600x350/8B4513/FFFFFF?text=Marbles+Game",
+                    answer: "2",
+                    hint: "First, calculate your final marble count. Then, add the individual digits of that number.",
+                    code_digit: "2",
+                    code_index: 5
+                },
+                {
+                    title: "The VIP's Secret Word Length",
+                    description: "A coded message from the VIPs reads: 'THE FINAL TEST IS NEAR'. If each letter in this message is shifted forward by 3 positions in the alphabet (A becomes D, B becomes E, etc.), what is the *length* of the *first word* of the *encrypted message*? This is the seventh digit of your Master Code.",
+                    image: "https://placehold.co/600x350/36454F/FFFFFF?text=VIP+Secret+Message",
+                    answer: "3",
+                    hint: "Encrypt 'THE' using a Caesar cipher with a shift of 3. Then count the letters.",
+                    code_digit: "3",
+                    code_index: 6
+                },
+                {
+                    title: "The Dormitory's Odd Tens Digit Sum",
+                    description: "In the dormitory, players are numbered from 001 to 456. Consider only the players whose number has an *odd digit* in their *tens place*. What is the *sum of the digits* of the *smallest* player number in this group? This is the eighth digit of your Master Code.",
+                    image: "https://placehold.co/600x350/808080/FFFFFF?text=Dormitory+Numbers",
+                    answer: "1",
+                    hint: "The tens digit is the middle digit of a three-digit number (e.g., in 123, '2' is the tens digit). Find the smallest number where this digit is odd, then sum its digits.",
+                    code_digit: "1",
+                    code_index: 7
+                },
+                {
+                    title: "The Front Man's Final Calculation",
+                    description: "The Front Man leaves a cryptic note: 'THE GAMES ARE OVER'. If you assign a numerical value to each letter based on its position in the alphabet (A=1, B=2, ... Z=26), and then sum the values of the letters in the word 'OVER', what is the *last digit* of that sum? This is the ninth digit of your Master Code.",
+                    image: "https://placehold.co/600x350/000000/FFFFFF?text=Front+Man+Note",
+                    answer: "0",
+                    hint: "Calculate the sum of O(15) + V(22) + E(5) + R(18). Then find the last digit of that total.",
+                    code_digit: "0",
+                    code_index: 8
+                },
+                {
+                    title: "The Piggy Bank's Final Digit",
+                    description: "The giant piggy bank is locked. The combination is a sequence of numbers. The first digit is the number of sides on the *triangle* from the invitation. The second digit is the number of circles in the *Squid Game logo*. The third digit is the number of letters in the word 'WIN'. What is the *sum of the digits* of this 3-digit code? This is the tenth and final digit of your Master Code.",
+                    image: "https://placehold.co/600x350/FFC0CB/000000?text=Piggy+Bank+Lock",
+                    answer: "7",
+                    hint: "Recall the basic shapes and a simple victory word. Form the 3-digit number, then sum its digits.",
+                    code_digit: "7",
+                    code_index: 9
+                },
+                {
+                    title: "The Guard's True Identity",
+                    description: "I wear a mask, but have no face. I carry a weapon, but fight no war. I enforce the rules, but make no laws. What am I, a single word, that describes the uniformed figures in this game?",
+                    image: "https://placehold.co/600x350/0A3D0A/FFFFFF?text=Squid+Game+Guard",
+                    answer: "soldier",
+                    hint: "Think about their role and appearance."
+                },
+                {
+                    title: "The Doll's Command",
+                    description: "I speak two words that decide your fate, one for movement, one for wait. My voice is sweet, my gaze is cold. What is the single word command that tells you it's safe to move?",
+                    image: "https://placehold.co/600x350/8B0000/FFFFFF?text=Doll+Command",
+                    answer: "greenlight",
+                    hint: "It's the opposite of the 'red' command."
+                },
+                {
+                    title: "The Master Code Challenge",
+                    description: "You have collected all 10 digits from your journey. Combine them in the exact order you received them to form a 10-digit master code. Enter this complete code to escape the Squid Game X SWIFT TV challenge and claim your victory!",
+                    image: "https://placehold.co/600x350/E50914/FFFFFF?text=Final+Escape+Room",
+                    answer: "2240623107", // This is the combined master code from all previous puzzles
+                    hint: "Review the 'Master Code Progress' display. It holds your key to freedom."
+                }
+            ];
+
+            // Function to load a puzzle
+            function loadPuzzle(index) {
+                if (index < puzzles.length) {
+                    const puzzle = puzzles[index];
+                    puzzleTitle.textContent = `Puzzle ${index + 1}: ${puzzle.title}`;
+                    puzzleDescription.textContent = puzzle.description;
+                    puzzleImage.src = puzzle.image;
+                    puzzleImage.style.display = 'block'; // Ensure image is visible
+                    answerInput.value = ''; // Clear input field
+                    messageBox.style.display = 'none'; // Hide message box
+                    hintBox.style.display = 'none'; // Hide hint box
+                    
+                    // Show master code progress for puzzles that contribute to it
+                    if (puzzle.code_digit) { // Only show if the current puzzle contributes a digit
+                        masterCodeProgress.style.display = 'block';
+                        masterCodeDisplay.textContent = masterCode.join('');
+                    } else {
+                        masterCodeProgress.style.display = 'none'; // Hide for non-code puzzles
+                    }
+
+                } else {
+                    // All puzzles solved
+                    endGame(true);
+                }
+            }
+
+            // Function to update coins display
+            function updateCoinsDisplay() {
+                coinsDisplay.textContent = `Coins: ${coins}`;
+            }
+
+            // Function to start the timer
+            function startTimer() {
+                timerInterval = setInterval(() => {
+                    timeLeft--;
+                    const minutes = Math.floor(timeLeft / 60);
+                    const seconds = timeLeft % 60;
+                    timerDisplay.textContent = `Time Remaining: ${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+
+                    if (timeLeft <= 0) {
+                        clearInterval(timerInterval);
+                        endGame(false); // Game over, time ran out
+                    }
+                }, 1000);
+            }
+
+            // Function to display feedback message
+            function showMessage(message, isError = false) {
+                messageBox.textContent = message;
+                messageBox.className = 'message-box'; // Reset class
+                if (isError) {
+                    messageBox.classList.add('error');
+                    incorrectSound.play(); // Play incorrect sound
+                } else {
+                    correctSound.play(); // Play correct sound
+                }
+                messageBox.style.display = 'block';
+            }
+
+            // Function to handle answer submission
+            submitButton.addEventListener('click', () => {
+                const userAnswer = answerInput.value.trim().toLowerCase();
+                const currentPuzzle = puzzles[currentPuzzleIndex];
+                const correctAnswer = currentPuzzle.answer.toLowerCase();
+
+                if (userAnswer === correctAnswer) {
+                    coins += 10; // Award 10 coins for correct answer
+                    updateCoinsDisplay();
+                    showMessage("Correct! Proceed to the next challenge.", false);
+                    
+                    // Add digit to master code if applicable
+                    if (currentPuzzle.code_digit && currentPuzzle.code_index !== undefined) {
+                        masterCode[currentPuzzle.code_index] = currentPuzzle.code_digit;
+                        masterCodeDisplay.textContent = masterCode.join('');
+                    }
+
+                    currentPuzzleIndex++;
+                    setTimeout(() => {
+                        loadPuzzle(currentPuzzleIndex);
+                    }, 1500); // Load next puzzle after a short delay
+                } else {
+                    showMessage("Incorrect. Try again!", true);
+                }
+            });
+
+            // Function to handle hint request
+            hintButton.addEventListener('click', () => {
+                if (coins >= 5) {
+                    coins -= 5; // Deduct 5 coins for a hint
+                    updateCoinsDisplay();
+                    hintBox.textContent = puzzles[currentPuzzleIndex].hint;
+                    hintBox.style.display = 'block';
+                    showMessage("Hint provided! Coins deducted.", false); // Show a general message
+                } else {
+                    showMessage("Not enough coins for a hint! You need 5 coins.", true);
+                }
+            });
+
+            // Function to toggle background music mute
+            muteButton.addEventListener('click', () => {
+                isMuted = !isMuted;
+                bgMusic.muted = isMuted;
+                muteButton.textContent = isMuted ? 'Unmute Music' : 'Mute Music';
+            });
+
+            // Function to end the game
+            function endGame(win) {
+                clearInterval(timerInterval);
+                bgMusic.pause(); // Pause background music on game end
+                bgMusic.currentTime = 0;
+                
+                if (win) {
+                    winSound.play();
+                    congratulationsModal.style.display = 'flex'; // Show modal
+                } else {
+                    // Handle lose condition (e.g., show a different message or restart)
+                    showMessage("Time's up! You couldn't escape the Squid Game X SWIFT TV challenge. Better luck next time!", true);
+                    setTimeout(() => {
+                        resetGame();
+                    }, 3000); // Reset after showing message
+                }
+            }
+
+            // Function to reset the game
+            function resetGame() {
+                currentPuzzleIndex = 0;
+                timeLeft = 40 * 60;
+                coins = 0; // Reset coins
+                masterCode = Array(10).fill(''); // Reset master code
+                timerDisplay.textContent = `Time Remaining: 40:00`;
+                updateCoinsDisplay(); // Update coins display
+                answerInput.value = '';
+                messageBox.style.display = 'none';
+                hintBox.style.display = 'none';
+                congratulationsModal.style.display = 'none';
+                gameContent.style.display = 'none'; // Hide game content
+                instructionsScreen.style.display = 'none'; // Hide instructions
+                homeScreen.classList.add('active'); // Show home screen
+                teamNameInput.value = ''; // Clear team name
+                teamName = ''; // Clear stored team name
+                bgMusic.pause(); // Ensure music is paused when resetting to home screen
+                bgMusic.currentTime = 0;
+                bgMusic.muted = false; // Reset mute state
+                muteButton.textContent = 'Mute Music';
+                masterCodeProgress.style.display = 'none'; // Hide master code progress
+                masterCodeDisplay.textContent = '';
+            }
+
+            // Event Listeners for navigation
+            startIntroButton.addEventListener('click', () => {
+                teamName = teamNameInput.value.trim();
+                if (teamName) {
+                    homeScreen.classList.remove('active');
+                    instructionsScreen.classList.add('active');
+                    // Attempt to play background music on the very first user interaction
+                    bgMusic.volume = 0.3; // Set volume once
+                    bgMusic.play().catch(e => {
+                        console.log("Background music autoplay blocked:", e);
+                        // Provide user feedback if autoplay is blocked
+                        showMessage("Music autoplay blocked by browser. Click the 'Start Challenge' button to enable music, or use the mute button.", false);
+                    });
+                } else {
+                    showMessage("Please enter your team name to proceed!", true); // Using custom message box
+                }
+            });
+
+            startGameButton.addEventListener('click', () => {
+                instructionsScreen.classList.remove('active');
+                gameContent.style.display = 'flex'; // Show game content
+                loadPuzzle(currentPuzzleIndex);
+                startTimer();
+                // If music didn't start on intro, try again here (though first click is preferred)
+                if (bgMusic.paused && !isMuted) {
+                    bgMusic.play().catch(e => console.log("Background music autoplay blocked (second attempt):", e));
+                }
+            });
+
+            closeModalButton.addEventListener('click', () => {
+                resetGame();
+            });
+
+            // Initial state: show home screen and update coins display
+            homeScreen.classList.add('active');
+            updateCoinsDisplay();
+        });
+    </script>
+</body>
+</html>
